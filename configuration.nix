@@ -99,7 +99,15 @@
     freecad
     git
     discord
+    steam-run
   ];
+
+  # Activer Steam
+  programs.steam = {
+    enable = true;
+    remotePlay.openFirewall = true;  # Pour jouer en remote play
+    dedicatedServer.openFirewall = true;  # Si tu héberges des serveurs
+  };
   
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   # Some programs need SUID wrappers, can be configured further or are
