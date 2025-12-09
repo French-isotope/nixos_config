@@ -75,6 +75,7 @@
     git
     discord
     steam-run
+    jetbrains.pycharm-community
   ];
 
   # Activer Steam
