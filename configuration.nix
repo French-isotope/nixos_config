@@ -17,15 +17,29 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = false;
 
+  users.groups.davfs2 = {};
+
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.gautier = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "networkmanager" ];
+    extraGroups = [ "wheel" "networkmanager" "davfs2" ];
     initialPassword = "plopplop";
     packages = with pkgs; [
       tree
     ];
   };
+
+  # Créer l'utilisateur et le groupe système pour davfs2
+  users.users.davfs2 = {
+    isSystemUser = true;
+    group = "davfs2";
+  };
+
+  # Créer le point de montage et configurer le montage
+  systemd.tmpfiles.rules = [
+    "d /mnt/kdrive 0755 root root -"
+  ];
+
   # networking.hostName = "nixos"; # Define your hostname.
 
   # Configure network connections interactively with nmcli or nmtui.
@@ -50,7 +64,14 @@
     layout = "fr";
     variant = "azerty";  # ou "azerty" si besoin
   };
-  
+
+  # Configure le wrapper setuid
+  security.wrappers."mount.davfs" = {
+    source = "${pkgs.davfs2}/sbin/mount.davfs";
+    owner = "root";
+    group = "root";
+    setuid = true;
+  };
   # Enable CUPS to print documents.
   # services.printing.enable = true;
 
@@ -76,7 +97,19 @@
     discord
     steam-run
     jetbrains.pycharm-community
+    # section pour codeblocks et les packages qui lui sont utiles
+    codeblocks
+    gcc
+    cmake
+    gdb                     # Débogueur
+    gnumake
+    # webdav for Kdrive
+    davfs2
   ];
+
+  environment.etc."fstab".text = lib.mkAfter ''
+    https://1330153.connect.kdrive.infomaniak.com /mnt/kdrive davfs user,noauto,uid=1000,gid=100 0 0
+  '';
 
   # Activer Steam
   programs.steam = {
@@ -95,6 +128,11 @@
       User git
       IdentityFile ~/nixos_config/ssh.key
     '';
+  };
+
+  programs.bash.shellAliases = {
+    mount-kdrive = "sudo mount /mnt/kdrive";
+    umount-kdrive = "sudo umount /mnt/kdrive";
   };
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
