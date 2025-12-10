@@ -16,6 +16,8 @@
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = false;
+  # Support pour montage SMB/CIFS
+  boot.supportedFilesystems = [ "cifs" ];
 
   users.groups.davfs2 = {};
 
@@ -105,6 +107,8 @@
     gnumake
     # webdav for Kdrive
     davfs2
+    cifs-utils
+    rclone
   ];
 
   environment.etc."fstab".text = lib.mkAfter ''
