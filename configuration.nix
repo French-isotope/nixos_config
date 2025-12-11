@@ -109,6 +109,7 @@
     davfs2
     cifs-utils
     rclone
+    prusa-slicer
   ];
 
   environment.etc."fstab".text = lib.mkAfter ''
