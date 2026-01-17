@@ -37,6 +37,19 @@
     group = "davfs2";
   };
 
+  fileSystems."/mnt/nas" = {
+    device = "//192.168.1.91/Family";
+    fsType = "cifs";
+    options = [
+      "credentials=/root/.smbcredentials"
+      "vers=1.0"  # ou 2.0 selon ce qui fonctionne
+      "uid=1000"
+      "gid=100"
+      "noauto"
+      "x-systemd.automount"
+    ];
+  };
+
   # Créer le point de montage et configurer le montage
   systemd.tmpfiles.rules = [
     "d /mnt/kdrive 0755 root root -"
@@ -110,19 +123,39 @@
     cifs-utils
     rclone
     prusa-slicer
+    # gaming
+    mangohud       # Overlay FPS/stats
+    gamescope      # Compositeur pour gaming
+    gamemode       # Optimisations CPU/GPU automatiques
   ];
 
   environment.etc."fstab".text = lib.mkAfter ''
     https://1330153.connect.kdrive.infomaniak.com /mnt/kdrive davfs user,noauto,uid=1000,gid=100 0 0
   '';
 
-  # Activer Steam
+  # Steam avec support Proton
   programs.steam = {
     enable = true;
-    remotePlay.openFirewall = true;  # Pour jouer en remote play
-    dedicatedServer.openFirewall = true;  # Si tu héberges des serveurs
+    remotePlay.openFirewall = true;    # Pour le Remote Play
+    dedicatedServer.openFirewall = true;  # Pour héberger des serveurs
+    gamescopeSession.enable = true;    # Mode gaming optimisé
+
+    # Active Proton-GE (version communautaire améliorée)
+    extraCompatPackages = with pkgs; [
+      proton-ge-bin
+    ];
   };
-  
+
+  # Support matériel pour manettes
+  hardware.steam-hardware.enable = true;
+
+  # Support 32-bit pour les jeux (important !)
+  hardware.graphics.enable32Bit = true;
+  hardware.pulseaudio.support32Bit = true;  # Si tu utilises PulseAudio
+
+  # Ou si tu utilises PipeWire (ton cas)
+  services.pipewire.alsa.support32Bit = true;  # Déjà dans ta config normalement
+
   programs.ssh = {
     startAgent = true;
     extraConfig = ''
